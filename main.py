@@ -1,5 +1,5 @@
-from src.utils import openCamera 
-
+from data.data_generation import data_collection, create_folder
 
 if __name__ == "__main__":
-    openCamera()
+    # create_folder()
+    data_collection()
