@@ -1,4 +1,4 @@
-from src.utils import *
+from src.utils.utils import *
 
 import numpy as np
 import mediapipe as mp
@@ -42,24 +42,24 @@ def data_collection():
                                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1, cv2.LINE_AA)
                         # Show to screen
                         cv2.imshow('OpenCV Feed', image)
-                        cv2.waitKey(2000)
-                else: 
-                    cv2.putText(image, 'Collecting frames for {} Video Number {}'.format(action, sequence), (15,12), 
-                               cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1, cv2.LINE_AA)
-                    # Show to screen
-                    cv2.imshow('OpenCV Feed', image)
+                        cv2.waitKey(500)
+                    else: 
+                        cv2.putText(image, 'Collecting frames for {} Video Number {}'.format(action, sequence), (15,12), 
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1, cv2.LINE_AA)
+                        # Show to screen
+                        cv2.imshow('OpenCV Feed', image)
                 
-                # NEW Export keypoints
-                keypoints = extract_keypoints(result)
-                npy_path = os.path.join(config["paths"]["data_dir"], action, str(sequence), str(frame_num))
-                np.save(npy_path, keypoints)
+                    # NEW Export keypoints
+                    keypoints = extract_keypoints(result)
+                    npy_path = os.path.join(config["paths"]["data_dir"], action, str(sequence), str(frame_num))
+                    np.save(npy_path, keypoints)
 
-                # Break gracefully
-                if cv2.waitKey(10) & 0xFF == ord('q'):
-                    break
+                    # Break gracefully
+                    if cv2.waitKey(10) & 0xFF == ord('q'):
+                        break
     
-    cap.release()
-    cv2.destroyAllWindows()
+        cap.release()
+        cv2.destroyAllWindows()
 
 
 
