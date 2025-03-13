@@ -1,9 +1,9 @@
+import torch 
 from torch.utils.data import Dataset
-import numpy as np
-import torch
-from src.utils.utils import take_all_landmarks_processing, augmentation, load_config
-config = load_config("./configs/config.yaml")
+import numpy as np 
+from src.utils.utils import augmentation, take_all_landmarks_processing, load_config
 
+config = load_config("./configs/config.yaml")
 
 class SignData(Dataset):
     def __init__(self, path, label_map,frame_drop = 0.0 ,mode = "train", transform = None):
@@ -17,7 +17,7 @@ class SignData(Dataset):
 
     def __len__(self):
         return len(self.path)
-    
+
     def apply_frame_drop(self, data, frame_drop):
         """
         Input:
@@ -36,14 +36,14 @@ class SignData(Dataset):
             if len(dropped_data) >= 2:
                 data = dropped_data
         return data
-    
+
     def process_data(self, landmark_dict, aug_param= None, frame_drop = 0.0):
         if aug_param:
             landmark_dict["left_hand"] = augmentation(landmark_dict["left_hand"], aug_param)
             landmark_dict["right_hand"] = augmentation(landmark_dict["right_hand"], aug_param)
             landmark_dict["lips"] = augmentation(landmark_dict["lips"], aug_param)
         
-         # Concatenate landmark data from all parts
+            # Concatenate landmark data from all parts
         landmark = np.concatenate([landmark_dict[key] for key in self.dict], axis=1)
         landmark = self.apply_frame_drop(landmark, frame_drop)
         
@@ -67,22 +67,23 @@ class SignData(Dataset):
         return landmark
 
     def __getitem__(self, idx):
-        video = self.path[idx]
+        videos = self.path[idx]
         
 
         if self.mode == "train" or self.mode == "valid":
-            label_string = video.replace("\\","/").split("/")[2]   
-            label = self.label_map[label_string]
-
-            landmarks = np.load(video)
-            landmarks = landmarks.reshape(-1, 543, 3)
-            landmark_dict = take_all_landmarks_processing(landmarks, config["landmarks"]["face_landmarks"])
-
-            # landmark = self.process_data(landmark_dict, self.transform, frame_drop= self.frame_drop)
+            landmarks = []
+            for video in videos:
+                landmark = np.load(video)
+                landmarks.append(landmark)
             
-            # label = torch.tensor(label, dtype= torch.long)
-            return landmark_dict, label     
+                label_string = videos[0].replace("\\","/").split("/")[2]   
+                label = self.label_map[label_string]
 
-        elif self.mode == "test":
-            return   
+            landmarks = np.array(landmarks).reshape(-1, 543, 3)
+            landmark_dict = take_all_landmarks_processing(landmarks, config["landmarks"]["face_landmarks"], "./configs/config.yaml")
 
+            landmark = self.process_data(landmark_dict, self.transform, frame_drop= self.frame_drop)
+            
+            landmark = torch.tensor(landmark, dtype=torch.float32)
+            label = torch.tensor(label, dtype = torch.long)
+            return landmark, label    

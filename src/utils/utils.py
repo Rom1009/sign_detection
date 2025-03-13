@@ -43,34 +43,33 @@ def extract_keypoints(results):
     return np.concatenate([pose, face, lh, rh])
 
 # Left hand indice
-def l_hand_indexes():
+def l_hand_indexes(path):
     l_hand_indexes =  []
-    for keypoint_name in load_config["hand_landmarks"]:
-        for index in load_config["hand_landmarks"][keypoint_name]:
-            l_hand_indexes.append(index + load_config["left_start_index"])
+    for keypoint_name in load_config(path)["landmarks"]["hand_landmarks"]:
+        for index in load_config(path)["landmarks"]["hand_landmarks"][keypoint_name]:
+            l_hand_indexes.append(index + load_config(path)["index"]["left_start_index"])
     l_hand_indexes =  list(set(l_hand_indexes))
     l_hand_indexes.sort()
     l_hand_indexes =  np.array(l_hand_indexes)
     return l_hand_indexes
 
 # Right hand indice
-def r_hand_indexes():
+def r_hand_indexes(path):
     r_hand_indexes =  []
-    for keypoint_name in load_config["hand_landmarks"]:
-        for index in load_config["hand_landmarks"][keypoint_name]:
-            r_hand_indexes.append(index + load_config["right_start_index"])
+    for keypoint_name in load_config(path)["landmarks"]["hand_landmarks"]:
+        for index in load_config(path)["landmarks"]["hand_landmarks"][keypoint_name]:
+            r_hand_indexes.append(index + load_config(path)["index"]["right_start_index"])
     r_hand_indexes =  list(set(r_hand_indexes))
     r_hand_indexes.sort()
     r_hand_indexes =  np.array(r_hand_indexes)
     return r_hand_indexes
 
-
-def take_all_landmarks_processing(full_landmarks, face_landmarks):
+def take_all_landmarks_processing(full_landmarks, face_landmarks, path):
     midwayBetweenEyes = full_landmarks[:, 168]
     mean_lips = np.nanmean(midwayBetweenEyes, axis = 0, keepdims = True)
     full_landmarks = full_landmarks - mean_lips
-    left_hand = full_landmarks[:, l_hand_indexes]
-    right_hand = full_landmarks[:, r_hand_indexes]
+    left_hand = full_landmarks[:, l_hand_indexes(path)]
+    right_hand = full_landmarks[:, r_hand_indexes(path)]
     lips_indexes = face_landmarks["lipsUpperOuter"] + face_landmarks["lipsLowerOuter"] + face_landmarks["lipsUpperInner"] + face_landmarks["lipsLowerInner"]
     lips = full_landmarks[:, lips_indexes]
     landmark_dict = dict(left_hand=left_hand, right_hand=right_hand, lips=lips)
@@ -98,4 +97,3 @@ def augmentation(landmarks, aug_params):
     aug_landmarks = aug_landmarks + landmarks[:, 0][:, None]
     aug_landmarks = aug_landmarks.astype(np.float32)
     return aug_landmarks
-
